@@ -24,9 +24,9 @@ def save_comics(upload_url):
         files = {
             'photo': file
         }
-        response = requests.post(upload_url, files=files)
-        response.raise_for_status()
-        uploaded_image_info = response.json()
+    response = requests.post(upload_url, files=files)
+    response.raise_for_status()
+    uploaded_image_info = response.json()
     return uploaded_image_info 
 
 

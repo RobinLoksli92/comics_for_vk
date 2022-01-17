@@ -18,7 +18,7 @@ def get_upload_url(vk_access_token):
     return upload_url
 
 
-def save_comics(upload_url):
+def load_comics(upload_url):
     with open('comics.png', 'rb') as file:
         files = {
             'photo': file
@@ -29,7 +29,7 @@ def save_comics(upload_url):
     return uploaded_image 
 
 
-def load_comics(vk_access_token, uploaded_image):
+def save_comics_on_wall(vk_access_token, uploaded_image):
     url = f'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token':{vk_access_token},
@@ -45,7 +45,7 @@ def load_comics(vk_access_token, uploaded_image):
     return image_params
 
 
-def upload_comics(vk_access_token, image_params, comics_title, vk_group_id):
+def publish_comics(vk_access_token, image_params, comics_title, vk_group_id):
     url = f'https://api.vk.com/method/wall.post'    
     params = {
         'v': '5.131',
@@ -94,9 +94,9 @@ def main():
     save_image(image_link)
     comics_comment = comics_page['alt']
     upload_url = get_upload_url(vk_access_token)
-    uploaded_image = save_comics(upload_url)
-    image_params = load_comics(vk_access_token, uploaded_image)
-    upload_comics(vk_access_token, image_params, comics_title, vk_group_id)
+    uploaded_image = load_comics(upload_url)
+    image_params = save_comics_on_wall(vk_access_token, uploaded_image)
+    publish_comics(vk_access_token, image_params, comics_title, vk_group_id)
     os.remove('comics.png')
     
 

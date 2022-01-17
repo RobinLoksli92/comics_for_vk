@@ -9,7 +9,6 @@ def get_upload_url(vk_access_token):
     url = f'https://api.vk.com/method/photos.getWallUploadServer'
     payload = {
         'access_token':{vk_access_token},
-        'extended': '1',
         'v': '5.131',
     }
     response = requests.get(url, params=payload)
@@ -34,7 +33,6 @@ def load_comics(vk_access_token, uploaded_image):
     url = f'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token':{vk_access_token},
-        'extended': '1',
         'v': '5.131',
         'server': uploaded_image['server'],
         'photo': uploaded_image['photo'],

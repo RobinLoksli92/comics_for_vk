@@ -6,8 +6,13 @@ import requests
 
 
 def get_upload_url(vk_access_token):
-    url = f'https://api.vk.com/method/photos.getWallUploadServer?access_token={vk_access_token}&extended=1&v=5.131'
-    response = requests.get(url)
+    url = f'https://api.vk.com/method/photos.getWallUploadServer'
+    payload = {
+        'access_token':{vk_access_token},
+        'extended': '1',
+        'v': '5.131',
+    }
+    response = requests.get(url, params=payload)
     response.raise_for_status()
     response = response.json()
     upload_url = response['response']['upload_url']
@@ -26,8 +31,11 @@ def save_comics(upload_url):
 
 
 def load_comics(vk_access_token, uploaded_image_info):
-    url = f'https://api.vk.com/method/photos.saveWallPhoto?access_token={vk_access_token}&extended=1&v=5.131'
+    url = f'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
+        'access_token':{vk_access_token},
+        'extended': '1',
+        'v': '5.131',
         'server': uploaded_image_info['server'],
         'photo': uploaded_image_info['photo'],
         'hash': uploaded_image_info['hash']
@@ -40,8 +48,10 @@ def load_comics(vk_access_token, uploaded_image_info):
 
 
 def upload_comics(vk_access_token, image_params, comics_title, vk_group_id):
-    url = f'https://api.vk.com/method/wall.post?access_token={vk_access_token}&v=5.131'    
+    url = f'https://api.vk.com/method/wall.post'    
     params = {
+        'v': '5.131',
+        'access_token': vk_access_token,
         'owner_id': f'-{vk_group_id}',
         'message': comics_title,
         'from_group': 1,

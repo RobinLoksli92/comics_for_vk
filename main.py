@@ -26,19 +26,19 @@ def save_comics(upload_url):
         }
     response = requests.post(upload_url, files=files)
     response.raise_for_status()
-    uploaded_image_info = response.json()
-    return uploaded_image_info 
+    uploaded_image = response.json()
+    return uploaded_image 
 
 
-def load_comics(vk_access_token, uploaded_image_info):
+def load_comics(vk_access_token, uploaded_image):
     url = f'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token':{vk_access_token},
         'extended': '1',
         'v': '5.131',
-        'server': uploaded_image_info['server'],
-        'photo': uploaded_image_info['photo'],
-        'hash': uploaded_image_info['hash']
+        'server': uploaded_image['server'],
+        'photo': uploaded_image['photo'],
+        'hash': uploaded_image['hash']
     }
 
     response = requests.post(url, params=params)
@@ -96,8 +96,8 @@ def main():
     save_image(image_link)
     comics_comment = comics_page['alt']
     upload_url = get_upload_url(vk_access_token)
-    uploaded_image_info = save_comics(upload_url)
-    image_params = load_comics(vk_access_token, uploaded_image_info)
+    uploaded_image = save_comics(upload_url)
+    image_params = load_comics(vk_access_token, uploaded_image)
     upload_comics(vk_access_token, image_params, comics_title, vk_group_id)
     os.remove('comics.png')
     

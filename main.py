@@ -26,26 +26,31 @@ def load_comics(upload_url):
         response = requests.post(upload_url, files=files)
     response.raise_for_status()
     uploaded_image = response.json()
-    return uploaded_image 
+    uploaded_image_server = uploaded_image['server']
+    uploaded_image_photo = uploaded_image['photo']
+    uploaded_image_hash = uploaded_image['hash']
+    return uploaded_image_server, uploaded_image_photo, uploaded_image_hash
 
 
-def save_comics_on_wall(vk_access_token, uploaded_image):
+def save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_photo, uploaded_image_hash):
     url = f'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'access_token':{vk_access_token},
         'v': '5.131',
-        'server': uploaded_image['server'],
-        'photo': uploaded_image['photo'],
-        'hash': uploaded_image['hash']
+        'server': uploaded_image_server,
+        'photo': uploaded_image_photo,
+        'hash': uploaded_image_hash
     }
 
     response = requests.post(url, params=params)
     response.raise_for_status()
     image_params = response.json()
-    return image_params
+    owner_id = image_params["response"][0]["owner_id"]
+    media_id = image_params["response"][0]["id"]
+    return owner_id, media_id
 
 
-def publish_comics(vk_access_token, image_params, comics_title, vk_group_id, comics_comment):
+def publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_id, comics_comment):
     url = f'https://api.vk.com/method/wall.post'    
     params = {
         'v': '5.131',
@@ -53,7 +58,7 @@ def publish_comics(vk_access_token, image_params, comics_title, vk_group_id, com
         'owner_id': f'-{vk_group_id}',
         'message': f'{comics_title}.{comics_comment}',
         'from_group': 1,
-        'attachments': f'photo{image_params["response"][0]["owner_id"]}_{image_params["response"][0]["id"]}'
+        'attachments': f'photo{owner_id}_{media_id}'
     }
     response = requests.post(url, params=params)
     response.raise_for_status()
@@ -94,9 +99,9 @@ def main():
         save_image(image_link)
         comics_comment = comics_page['alt']
         upload_url = get_upload_url(vk_access_token)
-        uploaded_image = load_comics(upload_url)
-        image_params = save_comics_on_wall(vk_access_token, uploaded_image)
-        publish_comics(vk_access_token, image_params, comics_title, vk_group_id, comics_comment)
+        uploaded_image_server, uploaded_image_photo, uploaded_image_hash = load_comics(upload_url)
+        owner_id, media_id = save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_photo, uploaded_image_hash)
+        publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_id, comics_comment)
     finally:
         os.remove('comics.png')
 

@@ -56,7 +56,7 @@ def publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_i
         'v': '5.131',
         'access_token': vk_access_token,
         'owner_id': f'-{vk_group_id}',
-        'message': f'{comics_title}.{comics_comment}',
+        'message': f'{comics_title}.\n{comics_comment}',
         'from_group': 1,
         'attachments': f'photo{owner_id}_{media_id}'
     }

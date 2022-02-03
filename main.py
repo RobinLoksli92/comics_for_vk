@@ -1,18 +1,22 @@
+from email.quoprimime import unquote
 import os
 import random
-from urllib.parse import urlparse
+from tkinter import image_names
+from urllib.parse import urlparse, urlsplit, unquote
 
 from dotenv import load_dotenv
 import requests
+import urllib3
 
 
 def check_vk_response(response):
-    response = response.json()
-
-    if response == 'error':
-        raise requests.HTTPError()
-    else:
-        pass
+    content = response.json()
+    try:
+        error_code = content['error']['error_code']
+        error_text = content['error']['error_msg']
+        raise requests.HTTPError(f'Code: {error_code}. Error: {error_text}.')
+    except KeyError:
+        return
 
 
 def get_upload_url(vk_access_token):
@@ -21,34 +25,28 @@ def get_upload_url(vk_access_token):
         'access_token': vk_access_token,
         'v': '5.131',
     }
-    try:
-        response = requests.get(url, params=payload)
-        check_vk_response(response)
-        response.raise_for_status()
-        response = response.json()
-        upload_url = response['response']['upload_url']
-        return upload_url
-    except requests.HTTPError():
-        print('Ошибка')
+    response = requests.get(url, params=payload)
+    check_vk_response(response)
+    response.raise_for_status()
+    response = response.json()
+    upload_url = response['response']['upload_url']
+    return upload_url
 
 
 def load_comics(upload_url, comics_name):
-    try: 
-        with open(comics_name, 'rb') as file:
-            files = {
-                'photo': file
-            }
-            response = requests.post(upload_url, files=files)
-            check_vk_response(response)
-        response.raise_for_status()
-        uploaded_image = response.json()
-        uploaded_image_server = uploaded_image['server']
-        uploaded_image_photo = uploaded_image['photo']
-        uploaded_image_hash = uploaded_image['hash']
-        return uploaded_image_server, uploaded_image_photo, uploaded_image_hash
-    except requests.HTTPError():
-        print('Ошибка')
-
+    with open(comics_name, 'rb') as file:
+        files = {
+            'photo': file
+        }
+        response = requests.post(upload_url, files=files)
+    check_vk_response(response)
+    response.raise_for_status()
+    uploaded_image = response.json()
+    uploaded_image_server = uploaded_image['server']
+    uploaded_image_photo = uploaded_image['photo']
+    uploaded_image_hash = uploaded_image['hash']
+    return uploaded_image_server, uploaded_image_photo, uploaded_image_hash
+    
 
 def save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_photo, uploaded_image_hash):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
@@ -60,16 +58,13 @@ def save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_p
         'photo': uploaded_image_photo,
         'hash': uploaded_image_hash
     }
-    try:
-        response = requests.post(url, params=params)
-        check_vk_response(response)
-        response.raise_for_status()
-        image_params = response.json()
-        owner_id = image_params["response"][0]["owner_id"]
-        media_id = image_params["response"][0]["id"]
-        return owner_id, media_id
-    except requests.HTTPError():
-        print('Ошибка')
+    response = requests.post(url, params=params)
+    check_vk_response(response)
+    response.raise_for_status()
+    image_params = response.json()
+    owner_id = image_params["response"][0]["owner_id"]
+    media_id = image_params["response"][0]["id"]
+    return owner_id, media_id
 
 
 def publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_id, comics_comment):
@@ -83,12 +78,9 @@ def publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_i
         'from_group': 1,
         'attachments': f'photo{owner_id}_{media_id}'
     }
-    try:
-        response = requests.post(url, params=params)
-        check_vk_response(response)
-        response.raise_for_status()
-    except requests.HTTPError():
-        print('Ошибка')
+    response = requests.post(url, params=params)
+    check_vk_response(response)
+    response.raise_for_status()
 
 
 def get_latest_comics_number():
@@ -100,8 +92,10 @@ def get_latest_comics_number():
 
 
 def save_image(image_link):
-    parsed_image_link = urlparse(image_link)
-    comics_name = parsed_image_link.path.split('/')[2]
+    parsed_image_link = urlsplit(image_link)
+    image_name = os.path.split(parsed_image_link[2])
+    comics_name = unquote(image_name[1])
+    print(comics_name)
     response = requests.get(image_link)
     response.raise_for_status()
     with open(comics_name, 'wb') as file:

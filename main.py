@@ -1,12 +1,9 @@
-from email.quoprimime import unquote
 import os
 import random
-from tkinter import image_names
-from urllib.parse import urlparse, urlsplit, unquote
+from urllib.parse import urlsplit, unquote
 
 from dotenv import load_dotenv
 import requests
-import urllib3
 
 
 def check_vk_response(response):

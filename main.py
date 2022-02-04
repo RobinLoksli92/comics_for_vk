@@ -8,12 +8,13 @@ import requests
 
 
 def check_vk_response(content):
-    try:
-        error_code = content['error']['error_code']
-        error_text = content['error']['error_msg']
-        raise requests.HTTPError(f'Code: {error_code}. Error: {error_text}.')
-    except KeyError:
-        return
+    if content.get('error'):
+        try:
+            error_code = content.get('error').get('error_code')
+            error_text = content.get('error').get('error_msg')
+            raise requests.HTTPError(f'Code: {error_code}. Error: {error_text}.')
+        except KeyError:
+            return
 
 
 def get_upload_url(vk_access_token):

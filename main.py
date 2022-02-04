@@ -1,5 +1,6 @@
 import os
 import random
+from urllib.error import HTTPError
 from urllib.parse import urlsplit, unquote
 
 from dotenv import load_dotenv
@@ -123,6 +124,8 @@ def main():
         uploaded_image_server, uploaded_image_photo, uploaded_image_hash = load_comics(upload_url, comics_name)
         owner_id, media_id = save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_photo, uploaded_image_hash)
         publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_id, comics_comment)
+    except HTTPError:
+        print('Ошибочка закралась')
     finally:
         os.remove(comics_name)
 

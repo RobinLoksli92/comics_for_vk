@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 import requests
 
 
-def check_vk_response(response):
-    content = response.json()
+def check_vk_response(content):
     try:
         error_code = content['error']['error_code']
         error_text = content['error']['error_msg']
@@ -23,10 +22,10 @@ def get_upload_url(vk_access_token):
         'v': '5.131',
     }
     response = requests.get(url, params=payload)
-    check_vk_response(response)
     response.raise_for_status()
-    response = response.json()
-    upload_url = response['response']['upload_url']
+    content = response.json()
+    check_vk_response(content)
+    upload_url = content['response']['upload_url']
     return upload_url
 
 
@@ -36,12 +35,12 @@ def load_comics(upload_url, comics_name):
             'photo': file
         }
         response = requests.post(upload_url, files=files)
-    check_vk_response(response)
     response.raise_for_status()
-    uploaded_image = response.json()
-    uploaded_image_server = uploaded_image['server']
-    uploaded_image_photo = uploaded_image['photo']
-    uploaded_image_hash = uploaded_image['hash']
+    content = response.json()
+    check_vk_response(content)
+    uploaded_image_server = content['server']
+    uploaded_image_photo = content['photo']
+    uploaded_image_hash = content['hash']
     return uploaded_image_server, uploaded_image_photo, uploaded_image_hash
     
 
@@ -56,11 +55,11 @@ def save_comics_on_wall(vk_access_token, uploaded_image_server, uploaded_image_p
         'hash': uploaded_image_hash
     }
     response = requests.post(url, params=params)
-    check_vk_response(response)
     response.raise_for_status()
-    image_params = response.json()
-    owner_id = image_params["response"][0]["owner_id"]
-    media_id = image_params["response"][0]["id"]
+    content = response.json()
+    check_vk_response(content)
+    owner_id = content["response"][0]["owner_id"]
+    media_id = content["response"][0]["id"]
     return owner_id, media_id
 
 
@@ -76,7 +75,9 @@ def publish_comics(vk_access_token, owner_id, media_id, comics_title, vk_group_i
         'attachments': f'photo{owner_id}_{media_id}'
     }
     response = requests.post(url, params=params)
-    check_vk_response(response)
+    response.raise_for_status()
+    content = response.json()
+    check_vk_response(content)
     response.raise_for_status()
 
 
@@ -92,7 +93,6 @@ def save_image(image_link):
     parsed_image_link = urlsplit(image_link)
     image_name = os.path.split(parsed_image_link[2])
     comics_name = unquote(image_name[1])
-    print(comics_name)
     response = requests.get(image_link)
     response.raise_for_status()
     with open(comics_name, 'wb') as file:

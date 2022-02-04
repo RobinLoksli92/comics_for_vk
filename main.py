@@ -8,13 +8,11 @@ import requests
 
 
 def check_vk_response(content):
-    if content.get('error'):
-        try:
-            error_code = content.get('error').get('error_code')
-            error_text = content.get('error').get('error_msg')
-            raise requests.HTTPError(f'Code: {error_code}. Error: {error_text}.')
-        except KeyError:
-            return
+    error = content.get('error')
+    if error:
+        error_code = error.get('error_code')
+        error_text = error.get('error_msg')
+        raise requests.HTTPError(f'Code: {error_code}. Error: {error_text}.')
 
 
 def get_upload_url(vk_access_token):
@@ -104,7 +102,6 @@ def save_image(image_link):
 
 def get_comics_page(comics_number):
     url = f'https://xkcd.com/{comics_number}/info.0.json'
-
     response = requests.get(url)
     response.raise_for_status()
     comics_page = response.json()
